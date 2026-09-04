@@ -9,12 +9,14 @@ public class GameManarger : MonoBehaviour
 {
     public static GameManarger instance;
 
-    [SerializeField] private TextMeshProUGUI countText;
-    [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private float timeLimit = 60f; // タイマーの制限時間（秒）
+    // 🌟【修正】テキストの代わりに、クリスタル画像（6個分）を入れる配列を用意
+    [SerializeField] private Image[] crystalImages;
+    [SerializeField] private float timeLimit = 60f;
+
+    [SerializeField] private TextMeshProUGUI timerText; // タイマーテキストはそのまま維持
 
     private int count = 0;
-    private bool isGameActive = true; // ゲーム中かどうかのフラグ
+    private bool isGameActive = true;
 
     private void Awake()
     {
@@ -24,12 +26,11 @@ public class GameManarger : MonoBehaviour
 
     void Start()
     {
-        UpdatecountText();
+        UpdatecountText(); // 初期状態（すべてグレー）にする
         UpdateTimerText();
-        CountData.finalScore = 0; // ゲーム開始時にスコアをリセット
+        CountData.finalScore = 0;
 
         CrystalSpawner crystalSpawner = FindFirstObjectByType<CrystalSpawner>();
-        // 🛠️ 修正1：変数の名前を crystalSpawner に統一
         if (crystalSpawner != null) { crystalSpawner.SpawnCrystals(); }
     }
 
@@ -37,12 +38,11 @@ public class GameManarger : MonoBehaviour
     {
         if (isGameActive)
         {
-            timeLimit -= Time.deltaTime; // 毎フレーム経過時間を引く
-
+            timeLimit -= Time.deltaTime;
             if (timeLimit <= 0f)
             {
                 timeLimit = 0f;
-                GameOver(false); // 🛠️ 修正2：時間切れは「false（ゲームオーバー）」で終了
+                GameOver(false);
             }
             UpdateTimerText();
         }
@@ -52,23 +52,36 @@ public class GameManarger : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // 🛠️ 修正3：クラス名ではなく、内部の変数 count に加算する
         count += amount;
         CountData.finalScore = count;
-        UpdatecountText();
+        UpdatecountText(); // 🌟ここで画像のカラーを更新
 
         if (count >= 6)
         {
-            GameOver(true); // 🛠️ 修正4：6個集まったら「true（クリア）」で終了
+            GameOver(true);
         }
     }
 
-    // 🛠️ 修正5：関数名がバラバラだったのを「UpdatecountText」に統一
+    // 🌟【大幅修正】スコアに応じて画像のグレー／カラーを切り替える
     void UpdatecountText()
     {
-        if (countText != null)
+        if (crystalImages == null || crystalImages.Length == 0) return;
+
+        for (int i = 0; i < crystalImages.Length; i++)
         {
-            countText.text = "Crystal: " + count.ToString() + " / 6";
+            if (crystalImages[i] != null)
+            {
+                if (i < count)
+                {
+                    // 🌟獲得したクリスタル：元の鮮やかな色（カラー）にする
+                    crystalImages[i].color = Color.white;
+                }
+                else
+                {
+                    // 🌟まだ取っていないクリスタル：半透明のグレーにする
+                    crystalImages[i].color = new Color(0.3f, 0.3f, 0.3f, 0.6f);
+                }
+            }
         }
     }
 
@@ -80,17 +93,16 @@ public class GameManarger : MonoBehaviour
         }
     }
 
-    // 🛠️ 修正6：引数 (bool isClear) を追加して結果をリザルトへ送る
     void GameOver(bool isClear)
     {
         isGameActive = false;
-        CountData.isClear = isClear; // クリアしたかどうかの結果を保存
+        CountData.isClear = isClear;
 
         Debug.Log(isClear ? "ゲームクリア！" : "ゲームオーバー！");
 
         if (FadeInEffect.instance != null)
         {
-            FadeInEffect.instance.FadeToScene("Result"); 
+            FadeInEffect.instance.FadeToScene("Result");
         }
         else
         {
@@ -99,7 +111,6 @@ public class GameManarger : MonoBehaviour
     }
 }
 
-// 🛠️ 修正7：スコアとクリアフラグを保存するクラス（ここに書いておけばエラーになりません）
 public static class CountData
 {
     public static int finalScore;

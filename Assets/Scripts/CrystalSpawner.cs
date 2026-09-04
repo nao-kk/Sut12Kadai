@@ -8,10 +8,6 @@ public class CrystalSpawner : MonoBehaviour
     [SerializeField] private int SpawnCount = 6; // 生成するクリスタルの数
 
 
-    void Start()
-    {
-        SpawnCrystals();
-    }
 
     public void SpawnCrystals()
     {
